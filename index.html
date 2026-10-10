@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KasirAI — Kasir Cerdas Real-Time</title>
+  <link rel="stylesheet" href="tampilan.css" />
+</head>
+<body>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="8" fill="#2563EB"/>
+          <path d="M7 14h4l3-7 3 10 3-6 2 3h3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>KasirAI</span>
+      </div>
+      <button class="sidebar-close" id="sidebarClose" title="Tutup">&#x2715;</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-panel="dashboard">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+        </svg>
+        <span>Dashboard</span>
+      </button>
+
+      <button class="nav-item" data-panel="spreadsheet">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h5v2H5a1 1 0 01-1-1zm7 1h4a1 1 0 001-1v-1h-5v2zm0-4h5V8h-5v2zM9 8H4v2h5V8z" clip-rule="evenodd"/>
+        </svg>
+        <span>Spreadsheet</span>
+      </button>
+
+      <button class="nav-item" data-panel="recap">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+        </svg>
+        <span>Rekap Gmail</span>
+      </button>
+
+      <button class="nav-item" data-panel="settings">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+        </svg>
+        <span>Pengaturan</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="conn-indicator" id="connIndicator">
+        <span class="conn-dot" id="connDot"></span>
+        <span id="connLabel">Online</span>
+      </div>
+      <div class="langflow-badge" id="langflowBadge">
+        <span class="lf-dot"></span>
+        Langflow MCP
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main" id="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger" title="Menu">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="topbar-title">
+          <h1 id="pageTitle">Dashboard</h1>
+          <span class="live-badge" id="liveBadge">● LIVE</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-date" id="topbarDate"></span>
+        <button class="btn-primary" id="btnNewTx">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+          Transaksi Baru
+        </button>
+      </div>
+    </header>
+
+    <!-- ====== PANEL: DASHBOARD ====== -->
+    <section class="panel active" id="panel-dashboard">
+
+      <!-- KPI Row -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-blue">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Pendapatan Hari Ini</div>
+            <div class="kpi-value" id="kpiRevenue">Rp 0</div>
+            <div class="kpi-sub" id="kpiRevenueSub">0 transaksi</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-cyan">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Item Terjual</div>
+            <div class="kpi-value" id="kpiItems">0</div>
+            <div class="kpi-sub" id="kpiItemsSub">pcs hari ini</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-indigo">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Pelanggan</div>
+            <div class="kpi-value" id="kpiCustomers">0</div>
+            <div class="kpi-sub">estimasi hari ini</div>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-highlight">
+          <div class="kpi-icon kpi-white">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label" style="color:rgba(255,255,255,0.8)">Laba Bersih Est.</div>
+            <div class="kpi-value" id="kpiProfit" style="color:#fff">Rp 0</div>
+            <div class="kpi-sub" id="kpiProfitSub" style="color:rgba(255,255,255,0.7)">margin 30%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Grid: table + chat -->
+      <div class="dash-grid">
+
+        <!-- Transaction Table -->
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Riwayat Transaksi</span>
+            <div class="card-actions">
+              <div class="search-wrap">
+                <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+                <input class="search-box" type="text" id="searchTx" placeholder="Cari produk…" />
+              </div>
+              <button class="btn-outline" id="exportTxCSV">Export CSV</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table id="txTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Waktu</th>
+                  <th>Produk / Layanan</th>
+                  <th>Qty</th>
+                  <th>Harga</th>
+                  <th>Total</th>
+                  <th>Kasir</th>
+                </tr>
+              </thead>
+              <tbody id="txBody">
+                <tr><td colspan="7" class="empty-row">Belum ada transaksi hari ini.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AI Chat -->
+        <div class="card chat-card">
+          <div class="card-head">
+            <div class="ai-head">
+              <div class="ai-avatar">AI</div>
+              <div>
+                <div class="card-title">Asisten AI Kasir</div>
+                <div class="ai-provider-label" id="aiProviderLabel">Mode Demo</div>
+              </div>
+            </div>
+            <button class="btn-ghost-sm" id="clearChat">Hapus</button>
+          </div>
+          <div class="chat-body" id="chatBody"></div>
+          <div class="chat-foot">
+            <div class="chat-hint" id="chatHint">
+              Coba: "produk terlaris", "rekap hari ini", "tambah kopi 2 pcs 10000"
+            </div>
+            <div class="chat-input-row">
+              <input class="chat-input" id="chatInput" type="text"
+                placeholder="Ketik pesan atau perintah transaksi…" />
+              <button class="btn-send" id="btnSend" title="Kirim">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====== PANEL: SPREADSHEET ====== -->
+    <section class="panel" id="panel-spreadsheet">
+      <div class="card sheet-card">
+        <div class="card-head">
+          <span class="card-title">Google Sheet — Real-Time</span>
+          <div class="card-actions">
+            <div class="search-wrap">
+              <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+              <input class="search-box" type="text" id="sheetSearch" placeholder="Filter baris…" />
+            </div>
+            <button class="btn-outline" id="exportCSV">Export CSV</button>
+          </div>
+        </div>
+
+        <div class="sheet-url-bar">
+          <label class="url-label">URL Google Sheet (Publik):</label>
+          <div class="url-row">
+            <input class="url-input" type="text" id="sheetUrl"
+              placeholder="https://docs.google.com/spreadsheets/d/…" />
+            <button class="btn-primary" id="btnLoadSheet">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+              Muat Sheet
+            </button>
+          </div>
+          <div class="sheet-status-bar" id="sheetStatus"></div>
+        </div>
+
+        <div class="table-scroll" id="sheetTableWrap">
+          <div class="sheet-empty">
+            <svg width="48" height="48" viewBox="0 0 20 20" fill="currentColor" style="color:#bfdbfe;margin-bottom:12px"><path fill-rule="evenodd" d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h5v2H5a1 1 0 01-1-1zm7 1h4a1 1 0 001-1v-1h-5v2zm0-4h5V8h-5v2zM9 8H4v2h5V8z" clip-rule="evenodd"/></svg>
+            <p>Tempel URL Google Sheet publik di atas lalu klik <strong>Muat Sheet</strong></p>
+            <p style="font-size:12px;margin-top:4px">Sheet harus dibagikan: <em>Siapa pun dengan tautan dapat melihat</em></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== PANEL: REKAP GMAIL ====== -->
+    <section class="panel" id="panel-recap">
+      <div class="recap-layout">
+        <div class="card recap-form-card">
+          <div class="card-head">
+            <span class="card-title">Kirim Rekap ke Gmail</span>
+          </div>
+          <div class="form-body">
+            <div class="form-group">
+              <label class="form-label">Email Tujuan</label>
+              <input class="form-control" type="email" id="recapEmail" placeholder="nama@gmail.com" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Periode Bulan</label>
+              <input class="form-control" type="month" id="recapMonth" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subjek Email</label>
+              <input class="form-control" type="text" id="recapSubject" value="Rekap Kasir Bulanan" />
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-outline" id="btnPreviewRecap">Pratinjau</button>
+              <button class="btn-primary" id="btnSendRecap">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+                Kirim via Gmail
+              </button>
+            </div>
+
+            <div class="recap-schedule-box">
+              <div class="schedule-title">Jadwal Otomatis</div>
+              <label class="toggle-row">
+                <span class="toggle-wrap">
+                  <input type="checkbox" id="autoRecap" class="toggle-input" />
+                  <span class="toggle-slider"></span>
+                </span>
+                <span class="toggle-text">Kirim rekap otomatis setiap akhir bulan (pukul 08.00)</span>
+              </label>
+              <div class="auto-status" id="autoStatus"></div>
+            </div>
+
+            <div class="info-box">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+              Menggunakan <code>mailto:</code> — membuka klien email. Untuk pengiriman otomatis penuh, sambungkan ke Langflow MCP / backend Node.js.
+            </div>
+          </div>
+        </div>
+
+        <div class="card recap-preview-card">
+          <div class="card-head">
+            <span class="card-title">Pratinjau Rekap</span>
+            <span class="preview-period" id="previewPeriod"></span>
+          </div>
+          <pre class="recap-preview" id="recapPreview">Pratinjau rekap akan muncul di sini setelah Anda klik tombol Pratinjau…</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== PANEL: PENGATURAN ====== -->
+    <section class="panel" id="panel-settings">
+      <div class="settings-layout">
+        <div class="card">
+          <div class="card-head"><span class="card-title">Pengaturan Toko</span></div>
+          <div class="form-body">
+            <div class="form-group">
+              <label class="form-label">Nama Toko</label>
+              <input class="form-control" type="text" id="cfgStoreName" value="Toko Saya" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nama Kasir Default</label>
+              <input class="form-control" type="text" id="cfgCashier" value="Admin" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Margin Laba (%)</label>
+              <input class="form-control" type="number" id="cfgMargin" value="30" min="0" max="100" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="card-title">Integrasi AI & Langflow</span></div>
+          <div class="form-body">
+            <div class="form-group">
+              <label class="form-label">AI Provider</label>
+              <select class="form-control" id="cfgAiProvider">
+                <option value="demo">Demo (tanpa API)</option>
+                <option value="langflow">Langflow MCP</option>
+                <option value="openai">OpenAI GPT-4o</option>
+              </select>
+            </div>
+            <div class="form-group" id="cfgLangflowRow" style="display:none">
+              <label class="form-label">Langflow MCP Endpoint</label>
+              <input class="form-control" type="text" id="cfgLangflowUrl"
+                placeholder="http://localhost:7860/api/v1/run/…" />
+              <div class="form-hint">Endpoint flow Langflow Anda. Atur CORS agar bisa diakses dari browser.</div>
+            </div>
+            <div class="form-group" id="cfgOpenAiRow" style="display:none">
+              <label class="form-label">OpenAI API Key</label>
+              <input class="form-control" type="password" id="cfgApiKey" placeholder="sk-…" />
+            </div>
+            <div class="form-group" id="cfgLangflowTokenRow" style="display:none">
+              <label class="form-label">Langflow API Token (opsional)</label>
+              <input class="form-control" type="password" id="cfgLangflowToken" placeholder="Bearer token…" />
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-save-row">
+          <button class="btn-primary btn-lg" id="btnSaveSettings">Simpan Pengaturan</button>
+          <div class="save-toast" id="saveToast">✓ Tersimpan!</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== MODAL: Tambah Transaksi ========== -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <span id="modalTitle">Transaksi Baru</span>
+        <button class="modal-close" id="modalClose">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Nama Produk / Layanan</label>
+          <input class="form-control" type="text" id="mxProduct"
+            placeholder="mis. print krs" />
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Qty / Jumlah</label>
+            <input class="form-control" type="number" id="mxQty" value="1" min="1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Harga Satuan (Rp)</label>
+            <input class="form-control" type="number" id="mxPrice" value="0" min="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Catatan (opsional)</label>
+          <input class="form-control" type="text" id="mxNote"
+            placeholder="mis. berapa lembar?" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kasir</label>
+          <input class="form-control" type="text" id="mxCashier" />
+        </div>
+        <div class="modal-total" id="modalTotal">Total: Rp 0</div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-outline" id="modalCancel">Batal</button>
+        <button class="btn-primary" id="modalSubmit">Tambahkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== OFFLINE BANNER ========== -->
+  <div class="offline-banner" id="offlineBanner">
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/></svg>
+    Mode Offline — data disimpan lokal
+  </div>
+
+  <script src="tampilan.js"></script>
+</body>
+</html>
