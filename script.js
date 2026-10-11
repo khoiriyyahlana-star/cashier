@@ -9,6 +9,12 @@
 // STATE
 // ============================================================
 
+// Langflow credentials dari MCP IBM Bob (.bob/mcp.json)
+const LANGFLOW_DEFAULTS = {
+  url:   'http://localhost:7860/api/v1/run/7701c193-a4f6-4252-b1ed-f81f135e6940',
+  token: 'sk-Dx5_kaJTFh5Yl4VOR4KwTso-T-onHP0OIDmOO0npOO4',
+};
+
 const STATE = {
   transactions: [],
   chatHistory:  [],
@@ -16,9 +22,9 @@ const STATE = {
     storeName:     'Toko Saya',
     cashierName:   'Admin',
     profitMargin:  30,
-    aiProvider:    'demo',     // 'demo' | 'langflow' | 'openai'
-    langflowUrl:   '',
-    langflowToken: '',
+    aiProvider:    'langflow',   // 'demo' | 'langflow' | 'openai'
+    langflowUrl:   LANGFLOW_DEFAULTS.url,
+    langflowToken: LANGFLOW_DEFAULTS.token,
     apiKey:        '',
   },
   autoRecap:      false,
@@ -83,6 +89,11 @@ function hydrate() {
     const ar = localStorage.getItem('kasirAI_autoRecap');
     if (ar) STATE.autoRecap = JSON.parse(ar);
   } catch (_) {}
+
+  // Selalu pastikan credential Langflow MCP terisi (jika user belum pernah set manual)
+  if (!STATE.settings.langflowUrl)   STATE.settings.langflowUrl   = LANGFLOW_DEFAULTS.url;
+  if (!STATE.settings.langflowToken) STATE.settings.langflowToken = LANGFLOW_DEFAULTS.token;
+  if (STATE.settings.aiProvider === 'demo') STATE.settings.aiProvider = 'langflow';
 }
 
 // ============================================================
@@ -351,11 +362,14 @@ function initChat() {
   if (!STATE.chatHistory.length) {
     appendAI(
       `Halo! Saya **Asisten AI Kasir** Anda 🤖\n\n` +
-      `Perintah yang bisa Anda ketikkan:\n` +
+      `**Input Transaksi Cepat:**\n` +
+      `• \`coba: NamaProduk Qty Harga\`\n` +
+      `  contoh: \`coba: Kopi Susu 2 15000\`\n\n` +
+      `**Perintah lainnya:**\n` +
       `• "produk terlaris hari ini"\n` +
       `• "rekap singkat"\n` +
       `• "pendapatan berapa"\n` +
-      `• "print kers dengan kertas cover"\n\n` +
+      `• "tambah Mie Ayam 3 pcs 12000"\n\n` +
       `Mode: ${providerLabel()}`
     );
   }
@@ -414,7 +428,35 @@ function hideTyping() {
   if (el) el.remove();
 }
 
+/**
+ * Detects shortcut format: "coba: NamaProduk Qty Harga"
+ * e.g. "coba: Kopi Susu 2 15000"
+ * Returns true if the message was handled (transaction saved), false otherwise.
+ */
+function tryShortcutTx(userMsg) {
+  const match = userMsg.match(/^coba\s*:\s*(.+?)\s+(\d+)\s+(\d+)$/i);
+  if (!match) return false;
+
+  const [, product, qty, price] = match;
+  const tx = addTx(product.trim(), parseInt(qty), parseInt(price));
+
+  const reply =
+    `✅ **Transaksi berhasil dicatat!**\n` +
+    `• Produk: **${tx.product}**\n` +
+    `• Qty: ${tx.qty} pcs\n` +
+    `• Harga: ${fmt(tx.price)}/pcs\n` +
+    `• Total: **${fmt(tx.total)}**`;
+
+  appendAI(reply);
+  STATE.chatHistory.push({ role: 'assistant', content: reply });
+  persist();
+  return true;
+}
+
 async function handleAI(userMsg) {
+  // Handle shortcut input format: "coba: produk-qty-harga"
+  if (tryShortcutTx(userMsg)) return;
+
   showTyping();
 
   const provider = STATE.settings.aiProvider;
@@ -449,8 +491,8 @@ async function handleAI(userMsg) {
  * The response shape varies by flow; we try common paths.
  */
 async function callLangflow(userMsg) {
-  const url   = STATE.settings.langflowUrl.trim();
-  const token = STATE.settings.langflowToken.trim();
+  const url   = (STATE.settings.langflowUrl   || LANGFLOW_DEFAULTS.url).trim();
+  const token = (STATE.settings.langflowToken || LANGFLOW_DEFAULTS.token).trim();
 
   // Build context to inject into the prompt
   const context = buildContext();
@@ -458,8 +500,11 @@ async function callLangflow(userMsg) {
   // Compose the input we send to Langflow
   const inputPayload = `[KASIR CONTEXT]\n${context}\n\n[USER]\n${userMsg}`;
 
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  // Langflow native auth: x-api-key header
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-api-key':    token,
+  };
 
   try {
     const res = await fetch(url, {
@@ -474,14 +519,15 @@ async function callLangflow(userMsg) {
       }),
     });
 
-    if (!res.ok) throw new Error(`Langflow error HTTP ${res.status}`);
+    if (!res.ok) throw new Error(`Langflow HTTP ${res.status}`);
 
     const data = await res.json();
 
-    // Extract text from known Langflow response paths
+    // Extract text dari berbagai format response Langflow v1
     const reply =
       data?.outputs?.[0]?.outputs?.[0]?.results?.message?.text     ??
       data?.outputs?.[0]?.outputs?.[0]?.artifacts?.message         ??
+      data?.outputs?.[0]?.outputs?.[0]?.messages?.[0]?.message     ??
       data?.output                                                  ??
       data?.result                                                  ??
       data?.message                                                 ??
@@ -960,10 +1006,10 @@ function initSettings() {
     STATE.settings.storeName     = val('cfgStoreName') || 'Toko Saya';
     STATE.settings.cashierName   = val('cfgCashier')   || 'Admin';
     STATE.settings.profitMargin  = Number(val('cfgMargin'))  || 30;
-    STATE.settings.aiProvider    = val('cfgAiProvider') || 'demo';
+    STATE.settings.aiProvider    = val('cfgAiProvider') || 'langflow';
     STATE.settings.apiKey        = val('cfgApiKey');
-    STATE.settings.langflowUrl   = val('cfgLangflowUrl');
-    STATE.settings.langflowToken = val('cfgLangflowToken');
+    STATE.settings.langflowUrl   = val('cfgLangflowUrl')   || LANGFLOW_DEFAULTS.url;
+    STATE.settings.langflowToken = val('cfgLangflowToken') || LANGFLOW_DEFAULTS.token;
     persist();
     updateKPIs();
     updateAIProviderLabel();
@@ -1027,19 +1073,18 @@ async function checkLangflowStatus() {
   const badge = document.getElementById('langflowBadge');
   if (!badge) return;
 
-  const url = STATE.settings.langflowUrl;
-  if (!url || STATE.settings.aiProvider !== 'langflow') return;
+  if (STATE.settings.aiProvider !== 'langflow') return;
 
   try {
-    // Lightweight health check — HEAD request
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 3000);
-    await fetch(url.replace('/run/', '/health') || url, {
-      method: 'HEAD',
+    // Langflow health endpoint
+    await fetch('http://localhost:7860/health', {
+      method: 'GET',
       signal: controller.signal,
     });
     badge.classList.add('connected');
-    badge.title = 'Langflow terhubung';
+    badge.title = 'Langflow terhubung ✅';
   } catch (_) {
     badge.classList.remove('connected');
     badge.title = 'Langflow tidak dapat dijangkau';
